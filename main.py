@@ -172,7 +172,13 @@ if total != len(archivos):
     }
     requests.post(url, data=json.dumps(data))
     logging.warning('Han ocurrido uno o mas problemas al copiar los archivos')
-
+else:
+    # Mensaje a slack
+    data = {
+        'text': 'Se han copiado todos los archivos'
+    }
+    requests.post(url, data=json.dumps(data))
+                           
 logging.debug('Fin de la copia de archivos')
 
 # Variable que almacena la hora en que se inicio el programa
