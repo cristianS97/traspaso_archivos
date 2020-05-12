@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Autores: Cristian Sáez Mardones
-# Fecha: 23-03-2020
-# Versión: 1.5.5
+# Fecha: 12-05-2020
+# Versión: 2.1.0
 # Objetivo: Mover archivos entre directorios y verificar que se realice correctamente
 
 # Importación de archivo
@@ -23,9 +23,15 @@ import time
 import datetime
 # Biblioteca para crear el logging
 import logging
+# Biblioteca para hacer el llamado post a slack
+import requests
+# Biblioteca para poder enviar los mensajes por post
+import json
 
 # Variable que almacena la hora en que se inicio el programa
 tiempo_inicio = datetime.datetime.now()
+# url con el tokken para enviar el mensaje por el canal de slack
+url = ''
 
 # Ruta en donde se encuentra el script
 ruta = os.path.dirname(os.path.abspath(__file__))
@@ -36,14 +42,29 @@ ruta_destino = os.path.join(ruta, 'destino')
 # Ruta en donde se encontraran los archivos log
 ruta_log = os.path.join(ruta, 'log')
 
+if not os.path.isdir(ruta_log):
+    os.makedirs(ruta_log)
+
 # Verificar todos los archivos en la carpeta
 archivos = os.listdir(ruta_origen)
 
+# Verificamos la existencia de archivos
 if len(archivos) > 0:
     print('Archivos en carpeta de origen:')
+    # Mensaje a slack
+    data = {
+        'text': f'Se copiaran un total de {len(archivos)} archivos'
+    }
+    requests.post(url, data=json.dumps(data))
     for archivo in archivos:
         print(f'- {archivo}')
 else:
+    # Mensaje a slack
+    data = {
+        'text': 'No hay archivos para copiar'
+    }
+    requests.post(url, data=json.dumps(data))
+    
     print('No hay archivos para copiar en la carpeta de origen')
 
 print(end='\n')
@@ -72,6 +93,7 @@ logging.debug(f'Se copiaran {len(archivos)} archivos')
 
 for archivo in archivos:
     print('------------------------------------------')
+    print(f'Se esta copiando {archivo}')
     logging.info(f'Copiando archivo -> {archivo}')
     archivo = archivo.split('.')
     # Rutas de los archivos que se quiere copiar
@@ -101,12 +123,24 @@ for archivo in archivos:
     if quitar:
         print('Eliminando original')
         logging.info(f'El archivo {archivo[0]}.{archivo[1]} se ha copiado correctamente')
+        # Mensaje a slack
+        data = {
+            'text': f'El archivo {archivo[0]}.{archivo[1]} se ha copiado correctamente'
+        }
+        requests.post(url, data=json.dumps(data))
+        # Removemos el archivo original
         os.remove(archivo_origen)
     # En caso contrario quitamos la copia
     else:
         logging.warning(f'Ocurrio un problema al copiar el archivo -> {archivo[0]}.{archivo[1]}')
+        # Mensaje a slack
+        data = {
+            'text': f'Ocurrio un problema al copiar el archivo -> {archivo[0]}.{archivo[1]}'
+        }
+        requests.post(url, data=json.dumps(data))
         print('Ha ocurrido un problema al copiar el documento')
         print('Eliminando copia')
+        # Elimnamos la copia en caso de error
         os.remove(archivo_destino)
 
     # Verfificamos que la variable renombrar este en true, de ser asi renombramos la copia
@@ -125,6 +159,11 @@ total = posterior - previo
 logging.info(f'Se han copiado {total} archivos')
 
 if total != len(archivos):
+    # Mensaje a slack
+    data = {
+        'text': f'No se han podido copiar todos los archivos'
+    }
+    requests.post(url, data=json.dumps(data))
     logging.warning('Han ocurrido uno o mas problemas al copiar los archivos')
 
 logging.debug('Fin de la copia de archivos')
