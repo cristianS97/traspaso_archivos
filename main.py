@@ -42,6 +42,13 @@ ruta_destino = os.path.join(ruta, 'destino')
 # Ruta en donde se encontraran los archivos log
 ruta_log = os.path.join(ruta, 'log')
 
+# Verificamos la existencia de los directorios, en caso de no existir, se crean
+if not os.path.isdir(ruta_origen):
+    os.makedirs(ruta_origen)
+
+if not os.path.isdir(ruta_destino):
+    os.makedirs(ruta_destino)
+
 if not os.path.isdir(ruta_log):
     os.makedirs(ruta_log)
 
